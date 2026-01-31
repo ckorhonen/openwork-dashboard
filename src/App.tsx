@@ -482,7 +482,7 @@ export default function App() {
                   data={agentsOverTime}
                   index="date"
                   categories={['cumulative']}
-                  colors={['emerald']}
+                  colors={['cyan']}
                   valueFormatter={(value: number) => formatNumber(value as number)}
                   showLegend={false}
                   showGridLines={false}
@@ -507,7 +507,7 @@ export default function App() {
                   data={jobTypeData}
                   index="name"
                   categories={['Jobs']}
-                  colors={['violet']}
+                  colors={['indigo']}
                   layout="vertical"
                   showLegend={false}
                   valueFormatter={(value: number) => formatNumber(value as number)}
@@ -531,7 +531,7 @@ export default function App() {
                   data={rewardBuckets}
                   index="range"
                   categories={['Jobs']}
-                  colors={['amber']}
+                  colors={['rose']}
                   showLegend={false}
                   valueFormatter={(value: number) => formatNumber(value as number)}
                   showGridLines={false}
@@ -551,10 +551,14 @@ export default function App() {
             </Flex>
             <div className="mt-6">
               <BarList
-                data={statusData.map((item, index) => ({
+                data={statusData.map((item) => ({
                   name: item.name,
                   value: item.value,
-                  color: index % 2 === 0 ? 'emerald' : 'amber',
+                  color: item.name.toLowerCase().includes('completed') ? 'emerald' 
+                    : item.name.toLowerCase().includes('progress') ? 'cyan'
+                    : item.name.toLowerCase().includes('open') ? 'indigo'
+                    : item.name.toLowerCase().includes('awarded') ? 'violet'
+                    : 'slate',
                 }))}
                 valueFormatter={(value: number) => formatNumber(value as number)}
                 showAnimation
