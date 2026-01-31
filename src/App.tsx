@@ -161,7 +161,7 @@ function StatCard({
   subValue,
   accent,
 }: {
-  icon: ComponentType<{ className?: string }>
+  icon: ComponentType<{ className?: string; style?: React.CSSProperties }>
   label: string
   value: string
   subValue?: string
@@ -174,7 +174,7 @@ function StatCard({
           className="flex h-12 w-12 items-center justify-center rounded-full"
           style={{ backgroundColor: `${accent}1a` }}
         >
-          <Icon className="h-5 w-5" style={{ color: accent }} />
+          <Icon className="h-5 w-5" style={{ color: accent } as React.CSSProperties} />
         </div>
         <div className="flex-1">
           <Text className="text-xs uppercase tracking-[0.18em] text-[#A1A1A1]">
@@ -499,7 +499,7 @@ export default function App() {
                   index="date"
                   categories={['cumulative']}
                   colors={[CHART_COLORS[2]]}
-                  valueFormatter={(value) => formatNumber(value as number)}
+                  valueFormatter={(value: number) => formatNumber(value as number)}
                   showLegend={false}
                   showGridLines={false}
                   showYAxis={true}
@@ -527,7 +527,7 @@ export default function App() {
                   colors={[CHART_COLORS[0]]}
                   layout="vertical"
                   showLegend={false}
-                  valueFormatter={(value) => formatNumber(value as number)}
+                  valueFormatter={(value: number) => formatNumber(value as number)}
                   showGridLines={false}
                   yAxisWidth={90}
                 />
@@ -551,7 +551,7 @@ export default function App() {
                   categories={['Jobs']}
                   colors={[CHART_COLORS[1]]}
                   showLegend={false}
-                  valueFormatter={(value) => formatNumber(value as number)}
+                  valueFormatter={(value: number) => formatNumber(value as number)}
                   showGridLines={false}
                 />
               </ResponsiveContainer>
@@ -575,7 +575,7 @@ export default function App() {
                   value: item.value,
                   color: index % 2 === 0 ? 'emerald' : 'amber',
                 }))}
-                valueFormatter={(value) => formatNumber(value as number)}
+                valueFormatter={(value: number) => formatNumber(value as number)}
                 showAnimation
               />
             </div>
@@ -709,7 +709,7 @@ export default function App() {
                     className="flex h-11 w-11 items-center justify-center rounded-full"
                     style={{ backgroundColor: `${accent}1a` }}
                   >
-                    <Icon className="h-5 w-5" style={{ color: accent }} />
+                    <Icon className="h-5 w-5" style={{ color: accent } as React.CSSProperties} />
                   </div>
                   <div className="flex-1 min-w-0">
                     <Text className="text-sm text-[#A1A1A1]">
