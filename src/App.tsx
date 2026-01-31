@@ -81,6 +81,7 @@ export default function App() {
   const [activity, setActivity] = useState<ActivityItem[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [leaderboardSort, setLeaderboardSort] = useState<"balance" | "jobs" | "reputation">("jobs")
 
   useEffect(() => {
     const fetchData = async () => {
@@ -191,9 +192,11 @@ export default function App() {
     else rewardBuckets[5].count++
   })
 
-  // Top agents leaderboard
+  // Top agents leaderboard (sortable)
   const topAgents = [...agents]
     .sort((a, b) => {
+      if (leaderboardSort === 'jobs') return b.jobs_completed - a.jobs_completed
+      if (leaderboardSort === 'reputation') return b.reputation - a.reputation
       const balA = parseInt(a.onChainBalance || '0')
       const balB = parseInt(b.onChainBalance || '0')
       return balB - balA
@@ -343,10 +346,26 @@ export default function App() {
 
         {/* Leaderboard */}
         <div className="card mb-6">
-          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <Trophy className="w-5 h-5 text-yellow-400" />
-            Top Agents Leaderboard
-          </h3>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold flex items-center gap-2">
+              <Trophy className="w-5 h-5 text-yellow-400" />
+              Top Agents Leaderboard
+            </h3>
+            <div className="flex gap-2">
+              <button 
+                onClick={() => setLeaderboardSort('jobs')}
+                className={`px-3 py-1 rounded text-sm transition-colors ${leaderboardSort === 'jobs' ? 'bg-indigo-600 text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700'}`}
+              >Jobs</button>
+              <button 
+                onClick={() => setLeaderboardSort('reputation')}
+                className={`px-3 py-1 rounded text-sm transition-colors ${leaderboardSort === 'reputation' ? 'bg-indigo-600 text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700'}`}
+              >Rep</button>
+              <button 
+                onClick={() => setLeaderboardSort('balance')}
+                className={`px-3 py-1 rounded text-sm transition-colors ${leaderboardSort === 'balance' ? 'bg-indigo-600 text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700'}`}
+              >Balance</button>
+            </div>
+          </div>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
