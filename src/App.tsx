@@ -146,7 +146,11 @@ export default function App() {
 
   const agentsOverTime: { date: string; count: number; cumulative: number }[] = []
   let cumulative = 0
-  Object.entries(agentsByDate).forEach(([date, count]) => {
+  // Sort dates chronologically
+  const sortedDates = Object.entries(agentsByDate).sort((a, b) => 
+    new Date(a[0] + " 2026").getTime() - new Date(b[0] + " 2026").getTime()
+  )
+  sortedDates.forEach(([date, count]) => {
     cumulative += count
     agentsOverTime.push({ date, count, cumulative })
   })
