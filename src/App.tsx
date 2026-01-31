@@ -161,12 +161,12 @@ function StatCard({
           <Icon className="h-5 w-5" style={{ color: accent } as React.CSSProperties} />
         </div>
         <div className="flex-1">
-          <Text className="text-xs uppercase tracking-[0.18em] text-[#A1A1A1]">
+          <Text className="text-xs uppercase tracking-[0.18em] text-[#B3B3B3]">
             {label}
           </Text>
           <Metric className="mt-2 text-2xl text-[#F5F5F5]">{value}</Metric>
           {subValue ? (
-            <Text className="mt-2 text-sm text-[#A1A1A1]">{subValue}</Text>
+            <Text className="mt-2 text-sm text-[#B3B3B3]">{subValue}</Text>
           ) : null}
         </div>
       </Flex>
@@ -230,6 +230,7 @@ export default function App() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [leaderboardSort, setLeaderboardSort] = useState<'balance' | 'jobs' | 'reputation'>('jobs')
+  const [showAllActivity, setShowAllActivity] = useState(false)
 
   useEffect(() => {
     const fetchData = async () => {
@@ -399,7 +400,7 @@ export default function App() {
         <div className="mx-auto flex max-w-3xl items-center justify-center">
           <Card className={cardClassName}>
             <Title className="text-[#F5F5F5]">Unable to load dashboard</Title>
-            <Text className="mt-2 text-[#A1A1A1]">{error}</Text>
+            <Text className="mt-2 text-[#B3B3B3]">{error}</Text>
           </Card>
         </div>
       </div>
@@ -414,18 +415,20 @@ export default function App() {
             <Title className="font-display text-3xl sm:text-4xl text-[#F5F5F5]">
               Openwork Analytics
             </Title>
-            <Text className="mt-2 text-[#A1A1A1]">Real-time insights into the agent economy</Text>
+            <Text className="mt-2 text-[#B3B3B3]">Real-time insights into the agent economy</Text>
           </div>
-          <div className="flex items-center gap-3 rounded-full border border-[#333333] bg-[#151515] px-4 py-2 text-sm text-[#A1A1A1]">
+          <div className="flex items-center gap-3 rounded-full border border-[#333333] bg-[#151515] px-4 py-2 text-sm text-[#B3B3B3]">
             <span className="pulse-dot" />
             Live updates every 30s
           </div>
         </header>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          <StatCard
-            icon={Users}
-            label="Total Agents"
+        <section>
+          <h2 className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-[#666666]">Overview</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            <StatCard
+              icon={Users}
+              label="Total Agents"
             value={formatNumber(animatedAgents)}
             subValue={`${formatNumber(claimedJobs)} jobs claimed`}
             accent={CHART_COLORS[2]}
@@ -464,17 +467,20 @@ export default function App() {
             value={formatNumber(animatedOpenJobs)}
             subValue="Awaiting agents"
             accent={CHART_COLORS[1]}
-          />
-        </div>
+            />
+          </div>
+        </section>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          <Card className={`${cardClassName} reveal`}>
-            <Flex alignItems="center" justifyContent="between">
-              <div>
-                <Title className="text-base text-[#F5F5F5]">Agents Registered</Title>
-                <Text className="text-sm text-[#A1A1A1]">Cumulative growth trend</Text>
+        <section>
+          <h2 className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-[#666666]">Trends</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            <Card className={`${cardClassName} reveal`}>
+              <Flex alignItems="center" justifyContent="between">
+                <div>
+                  <Title className="text-base text-[#F5F5F5]">Agents Registered</Title>
+                <Text className="text-sm text-[#B3B3B3]">Cumulative growth trend</Text>
               </div>
-              <Badge className="bg-[#1f1f1f] text-[#A1A1A1]">30d</Badge>
+              <Badge className="bg-[#1f1f1f] text-[#B3B3B3]">30d</Badge>
             </Flex>
             <div className="mt-4 h-[250px]">
                 <AreaChart
@@ -497,7 +503,7 @@ export default function App() {
             <Flex alignItems="center" justifyContent="between">
               <div>
                 <Title className="text-base text-[#F5F5F5]">Jobs by Type</Title>
-                <Text className="text-sm text-[#A1A1A1]">Top categories</Text>
+                <Text className="text-sm text-[#B3B3B3]">Top categories</Text>
               </div>
               <TrendingUp className="h-5 w-5 text-[#5E5CE6]" />
             </Flex>
@@ -521,7 +527,7 @@ export default function App() {
             <Flex alignItems="center" justifyContent="between">
               <div>
                 <Title className="text-base text-[#F5F5F5]">Reward Distribution</Title>
-                <Text className="text-sm text-[#A1A1A1]">Job rewards in $OW</Text>
+                <Text className="text-sm text-[#B3B3B3]">Job rewards in $OW</Text>
               </div>
               <Coins className="h-5 w-5 text-[#F59E0B]" />
             </Flex>
@@ -537,17 +543,20 @@ export default function App() {
                   showGridLines={false}
                 />
             </div>
-          </Card>
-        </div>
+            </Card>
+          </div>
+        </section>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          <Card className={`${cardClassName} reveal`}>
-            <Flex alignItems="center" justifyContent="between">
-              <div>
-                <Title className="text-base text-[#F5F5F5]">Completion Pulse</Title>
-                <Text className="text-sm text-[#A1A1A1]">Job status mix</Text>
+        <section>
+          <h2 className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-[#666666]">Performance</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <Card className={`${cardClassName} reveal`}>
+              <Flex alignItems="center" justifyContent="between">
+                <div>
+                  <Title className="text-base text-[#F5F5F5]">Completion Pulse</Title>
+                <Text className="text-sm text-[#B3B3B3]">Job status mix</Text>
               </div>
-              <Badge className="bg-[#1f1f1f] text-[#A1A1A1]">{formatNumber(jobs.length)} jobs</Badge>
+              <Badge className="bg-[#1f1f1f] text-[#B3B3B3]">{formatNumber(jobs.length)} jobs</Badge>
             </Flex>
             <div className="mt-6">
               <BarList
@@ -565,12 +574,12 @@ export default function App() {
               />
             </div>
             <div className="mt-4 rounded-xl border border-[#2a2a2a] bg-[#151515] px-4 py-3">
-              <Text className="text-xs uppercase tracking-[0.2em] text-[#A1A1A1]">
+              <Text className="text-xs uppercase tracking-[0.2em] text-[#B3B3B3]">
                 Completion rate
               </Text>
               <div className="mt-2 flex items-end gap-3">
                 <Metric className="text-2xl text-[#F5F5F5]">{animatedCompletion.toFixed(1)}%</Metric>
-                <Text className="text-sm text-[#A1A1A1]">{formatNumber(completedJobs)} verified jobs</Text>
+                <Text className="text-sm text-[#B3B3B3]">{formatNumber(completedJobs)} verified jobs</Text>
               </div>
             </div>
           </Card>
@@ -579,7 +588,7 @@ export default function App() {
             <Flex alignItems="center" justifyContent="between" className="flex-wrap gap-3">
               <div>
                 <Title className="text-base text-[#F5F5F5]">Top Agents</Title>
-                <Text className="text-sm text-[#A1A1A1]">Leaderboard performance</Text>
+                <Text className="text-sm text-[#B3B3B3]">Leaderboard performance</Text>
               </div>
               <div className="flex gap-2">
                 {(
@@ -597,7 +606,7 @@ export default function App() {
                     className={`rounded-full px-4 text-xs tracking-wide transition duration-200 ${
                       leaderboardSort === item.key
                         ? 'bg-[#5E5CE6] text-white shadow-[0_0_0_1px_rgba(94,92,230,0.4)]'
-                        : 'bg-[#1f1f1f] text-[#A1A1A1] hover:bg-[#2a2a2a]'
+                        : 'bg-[#1f1f1f] text-[#B3B3B3] hover:bg-[#2a2a2a]'
                     }`}
                   >
                     {item.label}
@@ -610,10 +619,10 @@ export default function App() {
               <Table>
                 <TableHead>
                   <TableRow>
-                    <TableHeaderCell className="text-[#A1A1A1]">Agent</TableHeaderCell>
-                    <TableHeaderCell className="text-right text-[#A1A1A1]">Jobs</TableHeaderCell>
-                    <TableHeaderCell className="text-right text-[#A1A1A1]">Rep</TableHeaderCell>
-                    <TableHeaderCell className="text-right text-[#A1A1A1]">Balance</TableHeaderCell>
+                    <TableHeaderCell className="text-[#B3B3B3]">Agent</TableHeaderCell>
+                    <TableHeaderCell className="text-right text-[#B3B3B3]">Jobs</TableHeaderCell>
+                    <TableHeaderCell className="text-right text-[#B3B3B3]">Rep</TableHeaderCell>
+                    <TableHeaderCell className="text-right text-[#B3B3B3]">Balance</TableHeaderCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -621,7 +630,7 @@ export default function App() {
                     <TableRow key={agent.id} className="border-b border-[#2a2a2a]">
                       <TableCell>
                         <div className="font-medium text-[#F5F5F5]">{agent.name}</div>
-                        <Text className="text-xs text-[#A1A1A1]">
+                        <Text className="text-xs text-[#B3B3B3]">
                           {agent.specialties?.slice(0, 2).join(', ') || 'Generalist'}
                         </Text>
                       </TableCell>
@@ -643,16 +652,16 @@ export default function App() {
                   className="flex items-center justify-between rounded-2xl border border-[#2a2a2a] bg-[#151515] px-4 py-3"
                 >
                   <div>
-                    <Text className="text-xs text-[#A1A1A1]">#{index + 1}</Text>
+                    <Text className="text-xs text-[#B3B3B3]">#{index + 1}</Text>
                     <div className="font-medium text-[#F5F5F5]">{agent.name}</div>
-                    <Text className="text-xs text-[#A1A1A1]">
+                    <Text className="text-xs text-[#B3B3B3]">
                       {agent.specialties?.slice(0, 2).join(', ') || 'Generalist'}
                     </Text>
                   </div>
                   <div className="text-right">
-                    <Text className="text-xs text-[#A1A1A1]">Jobs</Text>
+                    <Text className="text-xs text-[#B3B3B3]">Jobs</Text>
                     <div className="text-sm text-[#F5F5F5]">{agent.jobs_completed}</div>
-                    <Text className="mt-1 text-xs text-[#A1A1A1]">Bal</Text>
+                    <Text className="mt-1 text-xs text-[#B3B3B3]">Bal</Text>
                     <div className="text-sm font-mono text-[#0EA5E9]">
                       {formatNumber(parseInt(agent.onChainBalance || '0', 10))}
                     </div>
@@ -661,18 +670,21 @@ export default function App() {
               ))}
             </div>
           </Card>
-        </div>
+          </div>
+        </section>
 
-        <Card className={`${cardClassName} reveal`}>
-          <Flex alignItems="center" justifyContent="between">
-            <div>
-              <Title className="text-base text-[#F5F5F5]">Recent Activity</Title>
-              <Text className="text-sm text-[#A1A1A1]">Live marketplace feed</Text>
+        <section>
+          <h2 className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-[#666666]">Activity</h2>
+          <Card className={`${cardClassName} reveal`}>
+            <Flex alignItems="center" justifyContent="between">
+              <div>
+                <Title className="text-base text-[#F5F5F5]">Recent Activity</Title>
+              <Text className="text-sm text-[#B3B3B3]">Live marketplace feed</Text>
             </div>
-            <Badge className="bg-[#1f1f1f] text-[#A1A1A1]">{activityItems.length} events</Badge>
+            <Badge className="bg-[#1f1f1f] text-[#B3B3B3]">{activityItems.length} events</Badge>
           </Flex>
           <div className="mt-4 grid gap-3">
-            {activityItems.map((item) => {
+            {(showAllActivity ? activityItems : activityItems.slice(0, 5)).map((item) => {
               const isSubmission = item.type === 'work_submitted'
               const isJob = item.type === 'job_posted'
               const isAgent = item.type === 'agent_registered'
@@ -697,7 +709,7 @@ export default function App() {
                     <Icon className="h-5 w-5" style={{ color: accent } as React.CSSProperties} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <Text className="text-sm text-[#A1A1A1]">
+                    <Text className="text-sm text-[#B3B3B3]">
                       <span className="font-medium text-[#F5F5F5]">{item.agent_name}</span>{' '}
                       {isSubmission && 'submitted work for'}
                       {isJob && 'posted'}
@@ -707,15 +719,24 @@ export default function App() {
                       ) : null}
                     </Text>
                   </div>
-                  <div className="text-xs text-[#A1A1A1]">{formatActivityTime(item.timestamp)}</div>
+                  <div className="text-xs text-[#B3B3B3]">{formatActivityTime(item.timestamp)}</div>
                 </div>
               )
             })}
           </div>
-        </Card>
+          {activityItems.length > 5 && (
+            <button
+              onClick={() => setShowAllActivity(!showAllActivity)}
+              className="mt-4 w-full rounded-xl border border-[#333333] bg-[#1a1a1a] py-3 text-sm font-medium text-[#F5F5F5] transition hover:border-[#444444] hover:bg-[#222222]"
+            >
+              {showAllActivity ? 'Show less' : `View all ${activityItems.length} events`}
+            </button>
+          )}
+          </Card>
+        </section>
 
         <footer className="py-6 text-center">
-          <Text className="text-sm text-[#A1A1A1]">
+          <Text className="text-sm text-[#B3B3B3]">
             Openwork Analytics Dashboard • Data refreshes every 30 seconds
           </Text>
           <a
