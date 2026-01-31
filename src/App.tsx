@@ -71,7 +71,7 @@ interface ActivityItem {
 const CHART_COLORS = ['#34D399', '#F59E0B', '#0EA5E9', '#EC4899']
 
 const cardClassName =
-  'border border-[#333333] bg-[#1C1C1C]/95 shadow-[0_0_0_1px_rgba(255,255,255,0.02)] transition duration-200 hover:border-[#4a4a4a]'
+  'border border-[#333333] bg-[#1C1C1C]/95 shadow-[0_0_0_1px_rgba(255,255,255,0.02)] transition duration-200 hover:border-[#4a4a4a] p-6'
 
 function formatNumber(num: number): string {
   if (Number.isNaN(num) || !Number.isFinite(num)) return '0'
@@ -169,7 +169,7 @@ function StatCard({
 }) {
   return (
     <Card className={`${cardClassName} reveal`}>
-      <Flex alignItems="start" className="gap-4">
+      <Flex alignItems="start" className="gap-5">
         <div
           className="flex h-12 w-12 items-center justify-center rounded-full"
           style={{ backgroundColor: `${accent}1a` }}
@@ -193,12 +193,12 @@ function StatCard({
 function DashboardSkeleton() {
   return (
     <div className="min-h-screen px-4 py-6 sm:px-6 lg:px-8">
-      <div className="mx-auto flex max-w-7xl flex-col gap-6">
+      <div className="mx-auto flex max-w-7xl flex-col gap-8">
         <div className="space-y-3">
           <div className="skeleton h-9 w-64 rounded-full" />
           <div className="skeleton h-4 w-80 rounded-full" />
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {Array.from({ length: 6 }).map((_, index) => (
             <Card key={`stat-skel-${index}`} className={cardClassName}>
               <div className="space-y-4">
@@ -209,7 +209,7 @@ function DashboardSkeleton() {
             </Card>
           ))}
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {Array.from({ length: 3 }).map((_, index) => (
             <Card key={`chart-skel-${index}`} className={cardClassName}>
               <div className="space-y-4">
@@ -219,7 +219,7 @@ function DashboardSkeleton() {
             </Card>
           ))}
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {Array.from({ length: 2 }).map((_, index) => (
             <Card key={`list-skel-${index}`} className={cardClassName}>
               <div className="space-y-4">
@@ -424,7 +424,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen px-4 py-6 sm:px-6 lg:px-8">
-      <div className="mx-auto flex max-w-7xl flex-col gap-6">
+      <div className="mx-auto flex max-w-7xl flex-col gap-8">
         <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <Title className="font-display text-3xl sm:text-4xl text-[#F5F5F5]">
@@ -438,7 +438,7 @@ export default function App() {
           </div>
         </header>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           <StatCard
             icon={Users}
             label="Total Agents"
@@ -483,7 +483,7 @@ export default function App() {
           />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           <Card className={`${cardClassName} reveal`}>
             <Flex alignItems="center" justifyContent="between">
               <div>
@@ -559,7 +559,7 @@ export default function App() {
           </Card>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           <Card className={`${cardClassName} reveal`}>
             <Flex alignItems="center" justifyContent="between">
               <div>
