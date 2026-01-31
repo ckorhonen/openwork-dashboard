@@ -33,3 +33,63 @@ body {
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
+
+/* Mobile Optimizations */
+@media (max-width: 640px) {
+  .card {
+    padding: 1rem;
+    border-radius: 8px;
+  }
+  
+  .stat-value {
+    font-size: 1.5rem;
+  }
+  
+  /* Stack leaderboard sort buttons vertically on very small screens */
+  .leaderboard-sort {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  
+  /* Ensure charts have minimum height */
+  .chart-container {
+    min-height: 200px;
+  }
+  
+  /* Smaller text on mobile */
+  h1 {
+    font-size: 1.5rem !important;
+  }
+  
+  h3 {
+    font-size: 1rem !important;
+  }
+  
+  /* Table improvements */
+  table {
+    font-size: 0.875rem;
+  }
+  
+  th, td {
+    padding: 0.5rem 0.25rem;
+  }
+}
+
+/* Touch-friendly buttons */
+button {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Smooth scrolling for table */
+.overflow-x-auto {
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+
+/* Better tap targets */
+@media (hover: none) {
+  button:active {
+    transform: scale(0.98);
+  }
+}

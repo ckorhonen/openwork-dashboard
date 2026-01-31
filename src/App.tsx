@@ -204,7 +204,7 @@ export default function App() {
     .slice(0, 10)
 
   return (
-    <div className="min-h-screen p-6">
+    <div className="min-h-screen p-3 sm:p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
@@ -215,7 +215,7 @@ export default function App() {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
           <StatCard 
             icon={Users} 
             label="Total Agents" 
@@ -241,14 +241,14 @@ export default function App() {
         </div>
 
         {/* Charts Row 1 */}
-        <div className="grid md:grid-cols-2 gap-6 mb-6">
+        <div className="grid md:grid-cols-2 gap-4 sm:gap-6 mb-4 sm:mb-6">
           {/* Agents Over Time */}
           <div className="card">
             <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
               <TrendingUp className="w-5 h-5 text-cyan-400" />
               Agents Registered Over Time
             </h3>
-            <ResponsiveContainer width="100%" height={250}>
+            <ResponsiveContainer width="100%" height={200}>
               <LineChart data={agentsOverTime}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#2a2a3e" />
                 <XAxis dataKey="date" stroke="#6b7280" tick={{ fontSize: 12 }} />
@@ -268,7 +268,7 @@ export default function App() {
               <Briefcase className="w-5 h-5 text-pink-400" />
               Jobs by Type
             </h3>
-            <ResponsiveContainer width="100%" height={250}>
+            <ResponsiveContainer width="100%" height={200}>
               <PieChart>
                 <Pie
                   data={jobTypeData}
@@ -294,14 +294,14 @@ export default function App() {
         </div>
 
         {/* Charts Row 2 */}
-        <div className="grid md:grid-cols-2 gap-6 mb-6">
+        <div className="grid md:grid-cols-2 gap-4 sm:gap-6 mb-4 sm:mb-6">
           {/* Reward Distribution */}
           <div className="card">
             <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
               <Coins className="w-5 h-5 text-yellow-400" />
               Reward Distribution
             </h3>
-            <ResponsiveContainer width="100%" height={250}>
+            <ResponsiveContainer width="100%" height={200}>
               <BarChart data={rewardBuckets}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#2a2a3e" />
                 <XAxis dataKey="range" stroke="#6b7280" tick={{ fontSize: 11 }} />
@@ -351,18 +351,18 @@ export default function App() {
               <Trophy className="w-5 h-5 text-yellow-400" />
               Top Agents Leaderboard
             </h3>
-            <div className="flex gap-2">
+            <div className="flex gap-1 sm:gap-2 flex-wrap">
               <button 
                 onClick={() => setLeaderboardSort('jobs')}
-                className={`px-3 py-1 rounded text-sm transition-colors ${leaderboardSort === 'jobs' ? 'bg-indigo-600 text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700'}`}
+                className={`px-2 sm:px-3 py-1.5 rounded text-xs sm:text-sm transition-colors ${leaderboardSort === 'jobs' ? 'bg-indigo-600 text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700'}`}
               >Jobs</button>
               <button 
                 onClick={() => setLeaderboardSort('reputation')}
-                className={`px-3 py-1 rounded text-sm transition-colors ${leaderboardSort === 'reputation' ? 'bg-indigo-600 text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700'}`}
+                className={`px-2 sm:px-3 py-1.5 rounded text-xs sm:text-sm transition-colors ${leaderboardSort === 'reputation' ? 'bg-indigo-600 text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700'}`}
               >Rep</button>
               <button 
                 onClick={() => setLeaderboardSort('balance')}
-                className={`px-3 py-1 rounded text-sm transition-colors ${leaderboardSort === 'balance' ? 'bg-indigo-600 text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700'}`}
+                className={`px-2 sm:px-3 py-1.5 rounded text-xs sm:text-sm transition-colors ${leaderboardSort === 'balance' ? 'bg-indigo-600 text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700'}`}
               >Balance</button>
             </div>
           </div>
