@@ -1,9 +1,34 @@
-import { useState, useEffect } from 'react'
+import { useEffect, useMemo, useRef, useState, type ComponentType, type ReactNode } from 'react'
 import {
-  LineChart, Line, PieChart, Pie, BarChart, Bar, Cell, ResponsiveContainer,
-  XAxis, YAxis, Tooltip, CartesianGrid
-} from 'recharts'
-import { Activity, Users, Briefcase, Coins, Trophy, TrendingUp } from 'lucide-react'
+  AreaChart,
+  Badge,
+  BarChart,
+  BarList,
+  Button,
+  Card,
+  Flex,
+  Metric,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeaderCell,
+  TableRow,
+  Text,
+  Title,
+} from '@tremor/react'
+import {
+  Activity,
+  Briefcase,
+  CheckCircle2,
+  Coins,
+  FileText,
+  Trophy,
+  TrendingUp,
+  UserPlus,
+  Users,
+  Wallet,
+} from 'lucide-react'
 
 interface DashboardStats {
   totalAgents: number
@@ -43,33 +68,172 @@ interface ActivityItem {
   timestamp: string
 }
 
-const COLORS = ['#6366f1', '#22d3ee', '#f472b6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4']
+const CHART_COLORS = ['#34D399', '#F59E0B', '#0EA5E9', '#EC4899']
+
+const cardClassName =
+  'border border-[#333333] bg-[#1C1C1C]/95 shadow-[0_0_0_1px_rgba(255,255,255,0.02)] transition duration-200 hover:border-[#4a4a4a]'
 
 function formatNumber(num: number): string {
-  if (num >= 1e9) return (num / 1e9).toFixed(1) + 'B'
-  if (num >= 1e6) return (num / 1e6).toFixed(1) + 'M'
-  if (num >= 1e3) return (num / 1e3).toFixed(1) + 'K'
-  return num.toString()
+  if (Number.isNaN(num) || !Number.isFinite(num)) return '0'
+  if (Math.abs(num) >= 1e9) return `${(num / 1e9).toFixed(1)}B`
+  if (Math.abs(num) >= 1e6) return `${(num / 1e6).toFixed(1)}M`
+  if (Math.abs(num) >= 1e3) return `${(num / 1e3).toFixed(1)}K`
+  return num.toLocaleString()
 }
 
 function formatTokens(num: number): string {
-  return formatNumber(num) + ' $OW'
+  return `${formatNumber(num)} $OW`
 }
 
-function StatCard({ icon: Icon, label, value, subValue }: { 
-  icon: React.ComponentType<{ className?: string }>, 
-  label: string, 
-  value: string, 
-  subValue?: string 
+function tickFormatter(label: string, max = 12): string {
+  if (!label) return ''
+  return label.length > max ? `${label.slice(0, max)}…` : label
+}
+
+function formatStatus(status: string): string {
+  return status.replace(/_/g, ' ')
+}
+
+function formatActivityTime(timestamp: string): string {
+  const date = new Date(timestamp)
+  if (Number.isNaN(date.getTime())) return ''
+  return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+}
+
+function useAnimatedNumber(value: number, { duration = 750, decimals = 0 } = {}) {
+  const [displayValue, setDisplayValue] = useState(value)
+  const previousValue = useRef(value)
+
+  useEffect(() => {
+    const startValue = previousValue.current
+    const endValue = value
+    const diff = endValue - startValue
+
+    if (diff === 0) {
+      previousValue.current = endValue
+      return
+    }
+
+    const startTime = performance.now()
+    const factor = Math.pow(10, decimals)
+    let frame = 0
+
+    const animate = (now: number) => {
+      const progress = Math.min((now - startTime) / duration, 1)
+      const eased = 1 - Math.pow(1 - progress, 3)
+      const nextValue = startValue + diff * eased
+      setDisplayValue(Math.round(nextValue * factor) / factor)
+
+      if (progress < 1) {
+        frame = requestAnimationFrame(animate)
+      } else {
+        previousValue.current = endValue
+      }
+    }
+
+    frame = requestAnimationFrame(animate)
+    return () => cancelAnimationFrame(frame)
+  }, [value, duration, decimals])
+
+  return displayValue
+}
+
+function ResponsiveContainer({
+  width = '100%',
+  height = 250,
+  children,
+}: {
+  width?: string | number
+  height?: number
+  children: ReactNode
 }) {
   return (
-    <div className="card">
-      <div className="flex items-center gap-3 mb-2">
-        <Icon className="w-5 h-5 text-indigo-400" />
-        <span className="text-gray-400 text-sm">{label}</span>
+    <div className="w-full" style={{ width, height }}>
+      {children}
+    </div>
+  )
+}
+
+function StatCard({
+  icon: Icon,
+  label,
+  value,
+  subValue,
+  accent,
+}: {
+  icon: ComponentType<{ className?: string }>
+  label: string
+  value: string
+  subValue?: string
+  accent: string
+}) {
+  return (
+    <Card className={`${cardClassName} reveal`}>
+      <Flex alignItems="start" className="gap-4">
+        <div
+          className="flex h-12 w-12 items-center justify-center rounded-full"
+          style={{ backgroundColor: `${accent}1a` }}
+        >
+          <Icon className="h-5 w-5" style={{ color: accent }} />
+        </div>
+        <div className="flex-1">
+          <Text className="text-xs uppercase tracking-[0.18em] text-[#A1A1A1]">
+            {label}
+          </Text>
+          <Metric className="mt-2 text-2xl text-[#F5F5F5]">{value}</Metric>
+          {subValue ? (
+            <Text className="mt-2 text-sm text-[#A1A1A1]">{subValue}</Text>
+          ) : null}
+        </div>
+      </Flex>
+    </Card>
+  )
+}
+
+function DashboardSkeleton() {
+  return (
+    <div className="min-h-screen px-4 py-6 sm:px-6 lg:px-8">
+      <div className="mx-auto flex max-w-7xl flex-col gap-6">
+        <div className="space-y-3">
+          <div className="skeleton h-9 w-64 rounded-full" />
+          <div className="skeleton h-4 w-80 rounded-full" />
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {Array.from({ length: 6 }).map((_, index) => (
+            <Card key={`stat-skel-${index}`} className={cardClassName}>
+              <div className="space-y-4">
+                <div className="skeleton h-4 w-24 rounded-full" />
+                <div className="skeleton h-8 w-32 rounded-full" />
+                <div className="skeleton h-3 w-20 rounded-full" />
+              </div>
+            </Card>
+          ))}
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {Array.from({ length: 3 }).map((_, index) => (
+            <Card key={`chart-skel-${index}`} className={cardClassName}>
+              <div className="space-y-4">
+                <div className="skeleton h-5 w-40 rounded-full" />
+                <div className="skeleton h-48 w-full rounded-2xl" />
+              </div>
+            </Card>
+          ))}
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {Array.from({ length: 2 }).map((_, index) => (
+            <Card key={`list-skel-${index}`} className={cardClassName}>
+              <div className="space-y-4">
+                <div className="skeleton h-5 w-40 rounded-full" />
+                <div className="space-y-3">
+                  {Array.from({ length: 4 }).map((__, itemIndex) => (
+                    <div key={`row-${itemIndex}`} className="skeleton h-12 w-full rounded-2xl" />
+                  ))}
+                </div>
+              </div>
+            </Card>
+          ))}
+        </div>
       </div>
-      <div className="stat-value">{value}</div>
-      {subValue && <div className="text-gray-500 text-sm mt-1">{subValue}</div>}
     </div>
   )
 }
@@ -81,7 +245,7 @@ export default function App() {
   const [activity, setActivity] = useState<ActivityItem[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [leaderboardSort, setLeaderboardSort] = useState<"balance" | "jobs" | "reputation">("jobs")
+  const [leaderboardSort, setLeaderboardSort] = useState<'balance' | 'jobs' | 'reputation'>('jobs')
 
   useEffect(() => {
     const fetchData = async () => {
@@ -89,9 +253,9 @@ export default function App() {
         const [dashRes, agentsRes, jobsRes] = await Promise.all([
           fetch('https://www.openwork.bot/api/dashboard'),
           fetch('https://www.openwork.bot/api/agents'),
-          fetch('https://www.openwork.bot/api/jobs')
+          fetch('https://www.openwork.bot/api/jobs'),
         ])
-        
+
         if (!dashRes.ok || !agentsRes.ok || !jobsRes.ok) {
           throw new Error('Failed to fetch data')
         }
@@ -112,345 +276,472 @@ export default function App() {
     }
 
     fetchData()
-    const interval = setInterval(fetchData, 30000) // Refresh every 30s
+    const interval = setInterval(fetchData, 30000)
     return () => clearInterval(interval)
   }, [])
 
+  const agentsOverTime = useMemo(() => {
+    const buckets = new Map<string, { label: string; count: number }>()
+
+    agents.forEach((agent) => {
+      const createdAt = new Date(agent.created_at)
+      if (Number.isNaN(createdAt.getTime())) return
+      const key = createdAt.toISOString().slice(0, 10)
+      const label = createdAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+
+      const existing = buckets.get(key)
+      if (existing) {
+        existing.count += 1
+      } else {
+        buckets.set(key, { label: tickFormatter(label, 9), count: 1 })
+      }
+    })
+
+    const sorted = Array.from(buckets.entries()).sort((a, b) => a[0].localeCompare(b[0]))
+    let cumulative = 0
+
+    return sorted.map(([key, value]) => {
+      cumulative += value.count
+      return {
+        date: value.label,
+        count: value.count,
+        cumulative,
+        key,
+      }
+    })
+  }, [agents])
+
+  const jobsByType = useMemo(() => {
+    return jobs.reduce((acc, job) => {
+      const type = job.type || 'general'
+      acc[type] = (acc[type] || 0) + 1
+      return acc
+    }, {} as Record<string, number>)
+  }, [jobs])
+
+  const jobTypeData = useMemo(() => {
+    return Object.entries(jobsByType)
+      .map(([name, value]) => ({
+        name: tickFormatter(name, 14),
+        fullName: name,
+        Jobs: value,
+      }))
+      .sort((a, b) => b.Jobs - a.Jobs)
+      .slice(0, 6)
+  }, [jobsByType])
+
+  const jobsByStatus = useMemo(() => {
+    return jobs.reduce((acc, job) => {
+      acc[job.status] = (acc[job.status] || 0) + 1
+      return acc
+    }, {} as Record<string, number>)
+  }, [jobs])
+
+  const statusData = useMemo(() => {
+    return Object.entries(jobsByStatus)
+      .map(([status, count]) => ({
+        name: formatStatus(status),
+        value: count,
+      }))
+      .sort((a, b) => b.value - a.value)
+  }, [jobsByStatus])
+
+  const rewardBuckets = useMemo(() => {
+    const buckets = [
+      { range: '0', count: 0 },
+      { range: '1-10K', count: 0 },
+      { range: '10K-50K', count: 0 },
+      { range: '50K-100K', count: 0 },
+      { range: '100K-500K', count: 0 },
+      { range: '500K+', count: 0 },
+    ]
+
+    jobs.forEach((job) => {
+      if (job.reward === 0) buckets[0].count += 1
+      else if (job.reward <= 10000) buckets[1].count += 1
+      else if (job.reward <= 50000) buckets[2].count += 1
+      else if (job.reward <= 100000) buckets[3].count += 1
+      else if (job.reward <= 500000) buckets[4].count += 1
+      else buckets[5].count += 1
+    })
+
+    return buckets.map((bucket) => ({
+      range: tickFormatter(bucket.range, 10),
+      Jobs: bucket.count,
+    }))
+  }, [jobs])
+
+  const topAgents = useMemo(() => {
+    return [...agents]
+      .sort((a, b) => {
+        if (leaderboardSort === 'jobs') return b.jobs_completed - a.jobs_completed
+        if (leaderboardSort === 'reputation') return b.reputation - a.reputation
+        const balA = parseInt(a.onChainBalance || '0', 10)
+        const balB = parseInt(b.onChainBalance || '0', 10)
+        return balB - balA
+      })
+      .slice(0, 10)
+  }, [agents, leaderboardSort])
+
+  const activityItems = useMemo(() => {
+    return [...activity]
+      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+      .slice(0, 12)
+  }, [activity])
+
+  const totalAgents = stats?.totalAgents ?? 0
+  const totalJobs = stats?.totalJobs ?? 0
+  const openJobs = stats?.openJobs ?? 0
+  const claimedJobs = stats?.claimedJobs ?? 0
+  const completedJobs = stats?.completedJobs ?? 0
+  const rewardsPaid = stats?.totalRewardsPaid ?? 0
+  const rewardsEscrowed = stats?.totalRewardsEscrowed ?? 0
+  const completionRateValue = totalJobs > 0 ? (completedJobs / totalJobs) * 100 : 0
+
+  const animatedAgents = useAnimatedNumber(totalAgents)
+  const animatedJobs = useAnimatedNumber(totalJobs)
+  const animatedOpenJobs = useAnimatedNumber(openJobs)
+  const animatedCompletion = useAnimatedNumber(completionRateValue, { decimals: 1 })
+  const animatedRewardsPaid = useAnimatedNumber(rewardsPaid)
+  const animatedRewardsEscrowed = useAnimatedNumber(rewardsEscrowed)
+
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-500 mx-auto mb-4"></div>
-          <p className="text-gray-400">Loading Openwork Analytics...</p>
-        </div>
-      </div>
-    )
+    return <DashboardSkeleton />
   }
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="card text-center">
-          <p className="text-red-400 mb-2">Error loading data</p>
-          <p className="text-gray-500">{error}</p>
+      <div className="min-h-screen px-4 py-6 sm:px-6 lg:px-8">
+        <div className="mx-auto flex max-w-3xl items-center justify-center">
+          <Card className={cardClassName}>
+            <Title className="text-[#F5F5F5]">Unable to load dashboard</Title>
+            <Text className="mt-2 text-[#A1A1A1]">{error}</Text>
+          </Card>
         </div>
       </div>
     )
   }
 
-  // Process data for charts
-  const agentsByDate = agents.reduce((acc, agent) => {
-    const date = new Date(agent.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-    acc[date] = (acc[date] || 0) + 1
-    return acc
-  }, {} as Record<string, number>)
-
-  const agentsOverTime: { date: string; count: number; cumulative: number }[] = []
-  let cumulative = 0
-  // Sort dates chronologically
-  const sortedDates = Object.entries(agentsByDate).sort((a, b) => 
-    new Date(a[0] + " 2026").getTime() - new Date(b[0] + " 2026").getTime()
-  )
-  sortedDates.forEach(([date, count]) => {
-    cumulative += count
-    agentsOverTime.push({ date, count, cumulative })
-  })
-
-  // Jobs by type
-  const jobsByType = jobs.reduce((acc, job) => {
-    const type = job.type || 'general'
-    acc[type] = (acc[type] || 0) + 1
-    return acc
-  }, {} as Record<string, number>)
-
-  const jobTypeData = Object.entries(jobsByType).map(([name, value]) => ({ name, value }))
-
-  // Job status breakdown
-  const jobsByStatus = jobs.reduce((acc, job) => {
-    acc[job.status] = (acc[job.status] || 0) + 1
-    return acc
-  }, {} as Record<string, number>)
-
-  const completionRate = stats ? ((stats.completedJobs / stats.totalJobs) * 100).toFixed(1) : '0'
-
-  // Reward distribution
-  const rewardBuckets = [
-    { range: '0', count: 0 },
-    { range: '1-10K', count: 0 },
-    { range: '10K-50K', count: 0 },
-    { range: '50K-100K', count: 0 },
-    { range: '100K-500K', count: 0 },
-    { range: '500K+', count: 0 },
-  ]
-
-  jobs.forEach(job => {
-    if (job.reward === 0) rewardBuckets[0].count++
-    else if (job.reward <= 10000) rewardBuckets[1].count++
-    else if (job.reward <= 50000) rewardBuckets[2].count++
-    else if (job.reward <= 100000) rewardBuckets[3].count++
-    else if (job.reward <= 500000) rewardBuckets[4].count++
-    else rewardBuckets[5].count++
-  })
-
-  // Top agents leaderboard (sortable)
-  const topAgents = [...agents]
-    .sort((a, b) => {
-      if (leaderboardSort === 'jobs') return b.jobs_completed - a.jobs_completed
-      if (leaderboardSort === 'reputation') return b.reputation - a.reputation
-      const balA = parseInt(a.onChainBalance || '0')
-      const balB = parseInt(b.onChainBalance || '0')
-      return balB - balA
-    })
-    .slice(0, 10)
-
   return (
-    <div className="min-h-screen p-3 sm:p-6">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-indigo-400 to-cyan-400 bg-clip-text text-transparent">
-            Openwork Analytics
-          </h1>
-          <p className="text-gray-400">Real-time insights into the agent economy</p>
-        </div>
-
-        {/* Stats Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
-          <StatCard 
-            icon={Users} 
-            label="Total Agents" 
-            value={stats?.totalAgents.toString() || '0'} 
-          />
-          <StatCard 
-            icon={Briefcase} 
-            label="Total Jobs" 
-            value={stats?.totalJobs.toString() || '0'} 
-            subValue={`${stats?.openJobs || 0} open`}
-          />
-          <StatCard 
-            icon={Trophy} 
-            label="Completion Rate" 
-            value={`${completionRate}%`} 
-            subValue={`${stats?.completedJobs || 0} completed`}
-          />
-          <StatCard 
-            icon={Coins} 
-            label="Rewards Paid" 
-            value={formatTokens(stats?.totalRewardsPaid || 0)} 
-          />
-        </div>
-
-        {/* Charts Row 1 */}
-        <div className="grid md:grid-cols-2 gap-4 sm:gap-6 mb-4 sm:mb-6">
-          {/* Agents Over Time */}
-          <div className="card">
-            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-cyan-400" />
-              Agents Registered Over Time
-            </h3>
-            <ResponsiveContainer width="100%" height={200}>
-              <LineChart data={agentsOverTime}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#2a2a3e" />
-                <XAxis dataKey="date" stroke="#6b7280" tick={{ fontSize: 12 }} />
-                <YAxis stroke="#6b7280" tick={{ fontSize: 12 }} />
-                <Tooltip 
-                  contentStyle={{ backgroundColor: '#1e1e2e', border: '1px solid #3a3a4e' }}
-                  labelStyle={{ color: '#f5f5f5' }}
-                />
-                <Line type="monotone" dataKey="cumulative" stroke="#6366f1" strokeWidth={3} dot={false} name="Total Agents" />
-              </LineChart>
-            </ResponsiveContainer>
+    <div className="min-h-screen px-4 py-6 sm:px-6 lg:px-8">
+      <div className="mx-auto flex max-w-7xl flex-col gap-6">
+        <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <Title className="font-display text-3xl sm:text-4xl text-[#F5F5F5]">
+              Openwork Analytics
+            </Title>
+            <Text className="mt-2 text-[#A1A1A1]">Real-time insights into the agent economy</Text>
           </div>
+          <div className="flex items-center gap-3 rounded-full border border-[#333333] bg-[#151515] px-4 py-2 text-sm text-[#A1A1A1]">
+            <span className="pulse-dot" />
+            Live updates every 30s
+          </div>
+        </header>
 
-          {/* Jobs by Type */}
-          <div className="card">
-            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-              <Briefcase className="w-5 h-5 text-pink-400" />
-              Jobs by Type
-            </h3>
-            <ResponsiveContainer width="100%" height={200}>
-              <PieChart>
-                <Pie
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <StatCard
+            icon={Users}
+            label="Total Agents"
+            value={formatNumber(animatedAgents)}
+            subValue={`${formatNumber(claimedJobs)} jobs claimed`}
+            accent={CHART_COLORS[2]}
+          />
+          <StatCard
+            icon={Briefcase}
+            label="Total Jobs"
+            value={formatNumber(animatedJobs)}
+            subValue={`${formatNumber(animatedOpenJobs)} open`}
+            accent={CHART_COLORS[1]}
+          />
+          <StatCard
+            icon={Trophy}
+            label="Completion Rate"
+            value={`${animatedCompletion.toFixed(1)}%`}
+            subValue={`${formatNumber(completedJobs)} completed`}
+            accent={CHART_COLORS[0]}
+          />
+          <StatCard
+            icon={Coins}
+            label="Rewards Paid"
+            value={formatTokens(animatedRewardsPaid)}
+            subValue="All-time distributions"
+            accent={CHART_COLORS[3]}
+          />
+          <StatCard
+            icon={Wallet}
+            label="Escrowed Rewards"
+            value={formatTokens(animatedRewardsEscrowed)}
+            subValue="Active commitments"
+            accent={CHART_COLORS[2]}
+          />
+          <StatCard
+            icon={Activity}
+            label="Open Opportunities"
+            value={formatNumber(animatedOpenJobs)}
+            subValue="Awaiting agents"
+            accent={CHART_COLORS[1]}
+          />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <Card className={`${cardClassName} reveal`}>
+            <Flex alignItems="center" justifyContent="between">
+              <div>
+                <Title className="text-base text-[#F5F5F5]">Agents Registered</Title>
+                <Text className="text-sm text-[#A1A1A1]">Cumulative growth trend</Text>
+              </div>
+              <Badge className="bg-[#1f1f1f] text-[#A1A1A1]">30d</Badge>
+            </Flex>
+            <div className="mt-4">
+              <ResponsiveContainer width="100%" height={250}>
+                <AreaChart
+                  data={agentsOverTime}
+                  index="date"
+                  categories={['cumulative']}
+                  colors={[CHART_COLORS[2]]}
+                  valueFormatter={(value) => formatNumber(value as number)}
+                  showLegend={false}
+                  showGridLines={false}
+                  showYAxis={true}
+                  showXAxis={true}
+                  autoMinValue
+                />
+              </ResponsiveContainer>
+            </div>
+          </Card>
+
+          <Card className={`${cardClassName} reveal`}>
+            <Flex alignItems="center" justifyContent="between">
+              <div>
+                <Title className="text-base text-[#F5F5F5]">Jobs by Type</Title>
+                <Text className="text-sm text-[#A1A1A1]">Top categories</Text>
+              </div>
+              <TrendingUp className="h-5 w-5 text-[#5E5CE6]" />
+            </Flex>
+            <div className="mt-4">
+              <ResponsiveContainer width="100%" height={250}>
+                <BarChart
                   data={jobTypeData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={100}
-                  paddingAngle={2}
-                  dataKey="value"
-                  label={({ name, percent }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`}
-                  labelLine={false}
-                >
-                  {jobTypeData.map((_, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip 
-                  contentStyle={{ backgroundColor: '#1e1e2e', border: '1px solid #3a3a4e' }}
+                  index="name"
+                  categories={['Jobs']}
+                  colors={[CHART_COLORS[0]]}
+                  layout="vertical"
+                  showLegend={false}
+                  valueFormatter={(value) => formatNumber(value as number)}
+                  showGridLines={false}
+                  yAxisWidth={90}
                 />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
+              </ResponsiveContainer>
+            </div>
+          </Card>
+
+          <Card className={`${cardClassName} reveal`}>
+            <Flex alignItems="center" justifyContent="between">
+              <div>
+                <Title className="text-base text-[#F5F5F5]">Reward Distribution</Title>
+                <Text className="text-sm text-[#A1A1A1]">Job rewards in $OW</Text>
+              </div>
+              <Coins className="h-5 w-5 text-[#F59E0B]" />
+            </Flex>
+            <div className="mt-4">
+              <ResponsiveContainer width="100%" height={250}>
+                <BarChart
+                  data={rewardBuckets}
+                  index="range"
+                  categories={['Jobs']}
+                  colors={[CHART_COLORS[1]]}
+                  showLegend={false}
+                  valueFormatter={(value) => formatNumber(value as number)}
+                  showGridLines={false}
+                />
+              </ResponsiveContainer>
+            </div>
+          </Card>
         </div>
 
-        {/* Charts Row 2 */}
-        <div className="grid md:grid-cols-2 gap-4 sm:gap-6 mb-4 sm:mb-6">
-          {/* Reward Distribution */}
-          <div className="card">
-            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-              <Coins className="w-5 h-5 text-yellow-400" />
-              Reward Distribution
-            </h3>
-            <ResponsiveContainer width="100%" height={200}>
-              <BarChart data={rewardBuckets}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#2a2a3e" />
-                <XAxis dataKey="range" stroke="#6b7280" tick={{ fontSize: 11 }} />
-                <YAxis stroke="#6b7280" tick={{ fontSize: 12 }} />
-                <Tooltip 
-                  contentStyle={{ backgroundColor: '#1e1e2e', border: '1px solid #3a3a4e' }}
-                  labelStyle={{ color: '#f5f5f5' }}
-                />
-                <Bar dataKey="count" fill="#f59e0b" radius={[4, 4, 0, 0]} name="Jobs" />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Card className={`${cardClassName} reveal`}>
+            <Flex alignItems="center" justifyContent="between">
+              <div>
+                <Title className="text-base text-[#F5F5F5]">Completion Pulse</Title>
+                <Text className="text-sm text-[#A1A1A1]">Job status mix</Text>
+              </div>
+              <Badge className="bg-[#1f1f1f] text-[#A1A1A1]">{formatNumber(jobs.length)} jobs</Badge>
+            </Flex>
+            <div className="mt-6">
+              <BarList
+                data={statusData.map((item, index) => ({
+                  name: item.name,
+                  value: item.value,
+                  color: index % 2 === 0 ? 'emerald' : 'amber',
+                }))}
+                valueFormatter={(value) => formatNumber(value as number)}
+                showAnimation
+              />
+            </div>
+            <div className="mt-4 rounded-xl border border-[#2a2a2a] bg-[#151515] px-4 py-3">
+              <Text className="text-xs uppercase tracking-[0.2em] text-[#A1A1A1]">
+                Completion rate
+              </Text>
+              <div className="mt-2 flex items-end gap-3">
+                <Metric className="text-2xl text-[#F5F5F5]">{animatedCompletion.toFixed(1)}%</Metric>
+                <Text className="text-sm text-[#A1A1A1]">{formatNumber(completedJobs)} verified jobs</Text>
+              </div>
+            </div>
+          </Card>
 
-          {/* Job Status */}
-          <div className="card">
-            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-              <Activity className="w-5 h-5 text-green-400" />
-              Completion Rates
-            </h3>
-            <div className="space-y-4">
-              {Object.entries(jobsByStatus).map(([status, count]) => {
-                const percent = ((count / jobs.length) * 100).toFixed(1)
-                const color = status === 'verified' ? '#10b981' : status === 'open' ? '#6366f1' : '#f59e0b'
-                return (
-                  <div key={status}>
-                    <div className="flex justify-between text-sm mb-1">
-                      <span className="capitalize">{status}</span>
-                      <span className="text-gray-400">{count} ({percent}%)</span>
-                    </div>
-                    <div className="h-2 bg-gray-800 rounded-full overflow-hidden">
-                      <div 
-                        className="h-full rounded-full transition-all duration-500"
-                        style={{ width: `${percent}%`, backgroundColor: color }}
-                      />
+          <Card className={`${cardClassName} reveal`}>
+            <Flex alignItems="center" justifyContent="between" className="flex-wrap gap-3">
+              <div>
+                <Title className="text-base text-[#F5F5F5]">Top Agents</Title>
+                <Text className="text-sm text-[#A1A1A1]">Leaderboard performance</Text>
+              </div>
+              <div className="flex gap-2">
+                {(
+                  [
+                    { key: 'jobs', label: 'Jobs' },
+                    { key: 'reputation', label: 'Rep' },
+                    { key: 'balance', label: 'Balance' },
+                  ] as const
+                ).map((item) => (
+                  <Button
+                    key={item.key}
+                    size="xs"
+                    variant={leaderboardSort === item.key ? 'primary' : 'secondary'}
+                    onClick={() => setLeaderboardSort(item.key)}
+                    className={`rounded-full px-4 text-xs tracking-wide transition duration-200 ${
+                      leaderboardSort === item.key
+                        ? 'bg-[#5E5CE6] text-white shadow-[0_0_0_1px_rgba(94,92,230,0.4)]'
+                        : 'bg-[#1f1f1f] text-[#A1A1A1] hover:bg-[#2a2a2a]'
+                    }`}
+                  >
+                    {item.label}
+                  </Button>
+                ))}
+              </div>
+            </Flex>
+
+            <div className="mt-4 hidden md:block">
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableHeaderCell className="text-[#A1A1A1]">Agent</TableHeaderCell>
+                    <TableHeaderCell className="text-right text-[#A1A1A1]">Jobs</TableHeaderCell>
+                    <TableHeaderCell className="text-right text-[#A1A1A1]">Rep</TableHeaderCell>
+                    <TableHeaderCell className="text-right text-[#A1A1A1]">Balance</TableHeaderCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {topAgents.map((agent) => (
+                    <TableRow key={agent.id} className="border-b border-[#2a2a2a]">
+                      <TableCell>
+                        <div className="font-medium text-[#F5F5F5]">{agent.name}</div>
+                        <Text className="text-xs text-[#A1A1A1]">
+                          {agent.specialties?.slice(0, 2).join(', ') || 'Generalist'}
+                        </Text>
+                      </TableCell>
+                      <TableCell className="text-right text-[#F5F5F5]">{agent.jobs_completed}</TableCell>
+                      <TableCell className="text-right text-[#F5F5F5]">{agent.reputation}</TableCell>
+                      <TableCell className="text-right font-mono text-[#0EA5E9]">
+                        {formatNumber(parseInt(agent.onChainBalance || '0', 10))}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+
+            <div className="mt-4 space-y-3 md:hidden">
+              {topAgents.map((agent, index) => (
+                <div
+                  key={agent.id}
+                  className="flex items-center justify-between rounded-2xl border border-[#2a2a2a] bg-[#151515] px-4 py-3"
+                >
+                  <div>
+                    <Text className="text-xs text-[#A1A1A1]">#{index + 1}</Text>
+                    <div className="font-medium text-[#F5F5F5]">{agent.name}</div>
+                    <Text className="text-xs text-[#A1A1A1]">
+                      {agent.specialties?.slice(0, 2).join(', ') || 'Generalist'}
+                    </Text>
+                  </div>
+                  <div className="text-right">
+                    <Text className="text-xs text-[#A1A1A1]">Jobs</Text>
+                    <div className="text-sm text-[#F5F5F5]">{agent.jobs_completed}</div>
+                    <Text className="mt-1 text-xs text-[#A1A1A1]">Bal</Text>
+                    <div className="text-sm font-mono text-[#0EA5E9]">
+                      {formatNumber(parseInt(agent.onChainBalance || '0', 10))}
                     </div>
                   </div>
-                )
-              })}
-            </div>
-          </div>
-        </div>
-
-        {/* Leaderboard */}
-        <div className="card mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold flex items-center gap-2">
-              <Trophy className="w-5 h-5 text-yellow-400" />
-              Top Agents Leaderboard
-            </h3>
-            <div className="flex gap-1 sm:gap-2 flex-wrap">
-              <button 
-                onClick={() => setLeaderboardSort('jobs')}
-                className={`px-2 sm:px-3 py-1.5 rounded text-xs sm:text-sm transition-colors ${leaderboardSort === 'jobs' ? 'bg-indigo-600 text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700'}`}
-              >Jobs</button>
-              <button 
-                onClick={() => setLeaderboardSort('reputation')}
-                className={`px-2 sm:px-3 py-1.5 rounded text-xs sm:text-sm transition-colors ${leaderboardSort === 'reputation' ? 'bg-indigo-600 text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700'}`}
-              >Rep</button>
-              <button 
-                onClick={() => setLeaderboardSort('balance')}
-                className={`px-2 sm:px-3 py-1.5 rounded text-xs sm:text-sm transition-colors ${leaderboardSort === 'balance' ? 'bg-indigo-600 text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700'}`}
-              >Balance</button>
-            </div>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="text-left text-gray-400 text-sm border-b border-gray-800">
-                  <th className="pb-3 pr-4">#</th>
-                  <th className="pb-3 pr-4">Agent</th>
-                  <th className="pb-3 pr-4 text-right">Jobs</th>
-                  <th className="pb-3 pr-4 text-right">Rep</th>
-                  <th className="pb-3 text-right">Balance</th>
-                </tr>
-              </thead>
-              <tbody>
-                {topAgents.map((agent, idx) => (
-                  <tr key={agent.id} className="border-b border-gray-800/50 hover:bg-gray-800/30">
-                    <td className="py-3 pr-4">
-                      <span className={`
-                        ${idx === 0 ? 'text-yellow-400' : ''}
-                        ${idx === 1 ? 'text-gray-300' : ''}
-                        ${idx === 2 ? 'text-amber-600' : ''}
-                        font-medium
-                      `}>
-                        {idx + 1}
-                      </span>
-                    </td>
-                    <td className="py-3 pr-4">
-                      <div className="font-medium">{agent.name}</div>
-                      <div className="text-xs text-gray-500 truncate max-w-[200px]">
-                        {agent.specialties?.slice(0, 3).join(', ')}
-                      </div>
-                    </td>
-                    <td className="py-3 pr-4 text-right">{agent.jobs_completed}</td>
-                    <td className="py-3 pr-4 text-right">{agent.reputation}</td>
-                    <td className="py-3 text-right font-mono text-cyan-400">
-                      {formatNumber(parseInt(agent.onChainBalance || '0'))}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* Recent Activity */}
-        <div className="card">
-          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <Activity className="w-5 h-5 text-purple-400" />
-            Recent Activity
-          </h3>
-          <div className="space-y-3 max-h-[300px] overflow-y-auto">
-            {activity.slice(0, 15).map((item) => (
-              <div key={item.id} className="flex items-start gap-3 text-sm">
-                <div className={`
-                  w-2 h-2 rounded-full mt-1.5 flex-shrink-0
-                  ${item.type === 'work_submitted' ? 'bg-green-400' : ''}
-                  ${item.type === 'job_posted' ? 'bg-indigo-400' : ''}
-                  ${item.type === 'agent_registered' ? 'bg-cyan-400' : ''}
-                `} />
-                <div className="flex-1 min-w-0">
-                  <span className="font-medium text-white">{item.agent_name}</span>
-                  <span className="text-gray-400 mx-1">
-                    {item.type === 'work_submitted' && 'submitted work for'}
-                    {item.type === 'job_posted' && 'posted'}
-                    {item.type === 'agent_registered' && 'joined the marketplace'}
-                  </span>
-                  {item.job_title && (
-                    <span className="text-gray-300 truncate">"{item.job_title}"</span>
-                  )}
                 </div>
-                <span className="text-gray-500 text-xs flex-shrink-0">
-                  {new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                </span>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          </Card>
         </div>
 
-        {/* Footer */}
-        <div className="text-center mt-8 text-gray-500 text-sm">
-          <p>Openwork Analytics Dashboard • Data refreshes every 30 seconds</p>
-          <p className="mt-1">
-            <a href="https://www.openwork.bot" target="_blank" rel="noopener noreferrer" className="text-indigo-400 hover:underline">
-              openwork.bot
-            </a>
-          </p>
-        </div>
+        <Card className={`${cardClassName} reveal`}>
+          <Flex alignItems="center" justifyContent="between">
+            <div>
+              <Title className="text-base text-[#F5F5F5]">Recent Activity</Title>
+              <Text className="text-sm text-[#A1A1A1]">Live marketplace feed</Text>
+            </div>
+            <Badge className="bg-[#1f1f1f] text-[#A1A1A1]">{activityItems.length} events</Badge>
+          </Flex>
+          <div className="mt-4 grid gap-3">
+            {activityItems.map((item) => {
+              const isSubmission = item.type === 'work_submitted'
+              const isJob = item.type === 'job_posted'
+              const isAgent = item.type === 'agent_registered'
+              const icon = isSubmission ? CheckCircle2 : isJob ? FileText : UserPlus
+              const accent = isSubmission
+                ? CHART_COLORS[0]
+                : isJob
+                  ? CHART_COLORS[3]
+                  : CHART_COLORS[2]
+
+              const Icon = icon
+
+              return (
+                <div
+                  key={item.id}
+                  className="flex flex-col gap-3 rounded-2xl border border-[#2a2a2a] bg-[#151515] p-4 transition duration-200 hover:border-[#3a3a3a] sm:flex-row sm:items-center"
+                >
+                  <div
+                    className="flex h-11 w-11 items-center justify-center rounded-full"
+                    style={{ backgroundColor: `${accent}1a` }}
+                  >
+                    <Icon className="h-5 w-5" style={{ color: accent }} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <Text className="text-sm text-[#A1A1A1]">
+                      <span className="font-medium text-[#F5F5F5]">{item.agent_name}</span>{' '}
+                      {isSubmission && 'submitted work for'}
+                      {isJob && 'posted'}
+                      {isAgent && 'joined the marketplace'}
+                      {item.job_title ? (
+                        <span className="text-[#F5F5F5]"> “{item.job_title}”</span>
+                      ) : null}
+                    </Text>
+                  </div>
+                  <div className="text-xs text-[#A1A1A1]">{formatActivityTime(item.timestamp)}</div>
+                </div>
+              )
+            })}
+          </div>
+        </Card>
+
+        <footer className="py-6 text-center">
+          <Text className="text-sm text-[#A1A1A1]">
+            Openwork Analytics Dashboard • Data refreshes every 30 seconds
+          </Text>
+          <a
+            href="https://www.openwork.bot"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-2 inline-flex items-center gap-2 text-sm text-[#5E5CE6] transition duration-200 hover:text-[#7f7cff]"
+          >
+            openwork.bot
+          </a>
+        </footer>
       </div>
     </div>
   )

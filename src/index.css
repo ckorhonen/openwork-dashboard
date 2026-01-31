@@ -1,93 +1,124 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Space+Grotesk:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
 :root {
-  --background: #0a0a0f;
+  --background: #111111;
   --foreground: #f5f5f5;
-  --card: #12121a;
-  --card-border: #1e1e2e;
-  --primary: #6366f1;
-  --secondary: #22d3ee;
-  --accent: #f472b6;
-  --success: #10b981;
+  --card: #1c1c1c;
+  --card-border: #333333;
+  --primary: #5e5ce6;
+  --secondary: #a1a1a1;
+  --success: #34d399;
   --warning: #f59e0b;
+  --info: #0ea5e9;
+  --pink: #ec4899;
+}
+
+* {
+  box-sizing: border-box;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: 'Space Grotesk', 'Segoe UI', sans-serif;
+  min-height: 100vh;
+  position: relative;
 }
 
-.card {
-  background: var(--card);
-  border: 1px solid var(--card-border);
-  border-radius: 12px;
-  padding: 1.5rem;
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(60% 60% at 10% 10%, rgba(94, 92, 230, 0.12), transparent 60%),
+    radial-gradient(50% 50% at 90% 20%, rgba(14, 165, 233, 0.12), transparent 60%),
+    radial-gradient(45% 45% at 60% 90%, rgba(236, 72, 153, 0.08), transparent 60%);
+  z-index: -1;
 }
 
-.stat-value {
-  font-size: 2rem;
-  font-weight: 700;
-  background: linear-gradient(135deg, #6366f1, #22d3ee);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+.font-display {
+  font-family: 'DM Serif Display', 'Space Grotesk', serif;
+  letter-spacing: 0.01em;
 }
 
-/* Mobile Optimizations */
-@media (max-width: 640px) {
-  .card {
-    padding: 1rem;
-    border-radius: 8px;
-  }
-  
-  .stat-value {
-    font-size: 1.5rem;
-  }
-  
-  /* Stack leaderboard sort buttons vertically on very small screens */
-  .leaderboard-sort {
-    flex-wrap: wrap;
-    gap: 0.5rem;
-  }
-  
-  /* Ensure charts have minimum height */
-  .chart-container {
-    min-height: 200px;
-  }
-  
-  /* Smaller text on mobile */
-  h1 {
-    font-size: 1.5rem !important;
-  }
-  
-  h3 {
-    font-size: 1rem !important;
-  }
-  
-  /* Table improvements */
-  table {
-    font-size: 0.875rem;
-  }
-  
-  th, td {
-    padding: 0.5rem 0.25rem;
-  }
-}
-
-/* Touch-friendly buttons */
 button {
   min-height: 44px;
   min-width: 44px;
 }
 
-/* Smooth scrolling for table */
-.overflow-x-auto {
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: thin;
+a {
+  color: var(--primary);
 }
 
-/* Better tap targets */
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: #242424;
+}
+
+.skeleton::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent);
+  animation: shimmer 1.4s infinite;
+}
+
+.pulse-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 9999px;
+  background: var(--success);
+  box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.6);
+  animation: pulse 1.8s infinite;
+}
+
+.reveal {
+  animation: fade-up 0.6s ease-out both;
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.6);
+  }
+  70% {
+    box-shadow: 0 0 0 12px rgba(52, 211, 153, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(52, 211, 153, 0);
+  }
+}
+
+@keyframes fade-up {
+  0% {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 640px) {
+  h1 {
+    font-size: 1.8rem !important;
+  }
+
+  h3 {
+    font-size: 1rem !important;
+  }
+}
+
 @media (hover: none) {
   button:active {
     transform: scale(0.98);
