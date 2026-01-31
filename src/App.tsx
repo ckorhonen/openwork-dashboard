@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type ComponentType, type ReactNode } from 'react'
+import { useEffect, useMemo, useRef, useState, type ComponentType } from 'react'
 import {
   AreaChart,
   Badge,
@@ -136,22 +136,6 @@ function useAnimatedNumber(value: number, { duration = 750, decimals = 0 } = {})
   }, [value, duration, decimals])
 
   return displayValue
-}
-
-function ResponsiveContainer({
-  width = '100%',
-  height = 250,
-  children,
-}: {
-  width?: string | number
-  height?: number
-  children: ReactNode
-}) {
-  return (
-    <div className="w-full" style={{ width, height }}>
-      {children}
-    </div>
-  )
 }
 
 function StatCard({
@@ -492,13 +476,13 @@ export default function App() {
               </div>
               <Badge className="bg-[#1f1f1f] text-[#A1A1A1]">30d</Badge>
             </Flex>
-            <div className="mt-4">
-              <ResponsiveContainer width="100%" height={250}>
+            <div className="mt-4 h-[250px]">
                 <AreaChart
+                  className="h-full"
                   data={agentsOverTime}
                   index="date"
                   categories={['cumulative']}
-                  colors={[CHART_COLORS[2]]}
+                  colors={['emerald']}
                   valueFormatter={(value: number) => formatNumber(value as number)}
                   showLegend={false}
                   showGridLines={false}
@@ -506,7 +490,6 @@ export default function App() {
                   showXAxis={true}
                   autoMinValue
                 />
-              </ResponsiveContainer>
             </div>
           </Card>
 
@@ -518,20 +501,19 @@ export default function App() {
               </div>
               <TrendingUp className="h-5 w-5 text-[#5E5CE6]" />
             </Flex>
-            <div className="mt-4">
-              <ResponsiveContainer width="100%" height={250}>
+            <div className="mt-4 h-[250px]">
                 <BarChart
+                  className="h-full"
                   data={jobTypeData}
                   index="name"
                   categories={['Jobs']}
-                  colors={[CHART_COLORS[0]]}
+                  colors={['violet']}
                   layout="vertical"
                   showLegend={false}
                   valueFormatter={(value: number) => formatNumber(value as number)}
                   showGridLines={false}
                   yAxisWidth={90}
                 />
-              </ResponsiveContainer>
             </div>
           </Card>
 
@@ -543,18 +525,17 @@ export default function App() {
               </div>
               <Coins className="h-5 w-5 text-[#F59E0B]" />
             </Flex>
-            <div className="mt-4">
-              <ResponsiveContainer width="100%" height={250}>
+            <div className="mt-4 h-[250px]">
                 <BarChart
+                  className="h-full"
                   data={rewardBuckets}
                   index="range"
                   categories={['Jobs']}
-                  colors={[CHART_COLORS[1]]}
+                  colors={['amber']}
                   showLegend={false}
                   valueFormatter={(value: number) => formatNumber(value as number)}
                   showGridLines={false}
                 />
-              </ResponsiveContainer>
             </div>
           </Card>
         </div>
