@@ -71,7 +71,7 @@ interface ActivityItem {
 const CHART_COLORS = ['#34D399', '#F59E0B', '#0EA5E9', '#EC4899']
 
 const cardClassName =
-  'border border-[#333333] bg-[#1C1C1C]/95 shadow-[0_0_0_1px_rgba(255,255,255,0.02)] transition duration-200 hover:border-[#4a4a4a] p-6'
+  'border border-[#262626] border-t-[rgba(255,255,255,0.06)] bg-[#141414] shadow-[0_0_0_1px_rgba(255,255,255,0.03),0_2px_4px_rgba(0,0,0,0.2)] transition duration-200 hover:border-[#3a3a3a] p-6'
 
 function formatNumber(num: number): string {
   if (Number.isNaN(num) || !Number.isFinite(num)) return '0'
@@ -164,7 +164,7 @@ function StatCard({
           <Text className="text-xs uppercase tracking-[0.18em] text-[#B3B3B3]">
             {label}
           </Text>
-          <Metric className="mt-2 text-2xl text-[#F5F5F5]">{value}</Metric>
+          <Metric className="mt-2 text-4xl font-semibold tracking-tight text-[#F5F5F5]">{value}</Metric>
           {subValue ? (
             <Text className="mt-2 text-sm text-[#B3B3B3]">{subValue}</Text>
           ) : null}
@@ -417,7 +417,7 @@ export default function App() {
             </Title>
             <Text className="mt-2 text-[#B3B3B3]">Real-time insights into the agent economy</Text>
           </div>
-          <div className="flex items-center gap-3 rounded-full border border-[#333333] bg-[#151515] px-4 py-2 text-sm text-[#B3B3B3]">
+          <div className="flex items-center gap-3 rounded-full border border-[#333333] bg-[#111111] px-4 py-2 text-sm text-[#B3B3B3]">
             <span className="pulse-dot" />
             Live updates every 30s
           </div>
@@ -573,7 +573,7 @@ export default function App() {
                 showAnimation
               />
             </div>
-            <div className="mt-4 rounded-xl border border-[#2a2a2a] bg-[#151515] px-4 py-3">
+            <div className="mt-4 rounded-xl border border-[#2a2a2a] bg-[#111111] px-4 py-3">
               <Text className="text-xs uppercase tracking-[0.2em] text-[#B3B3B3]">
                 Completion rate
               </Text>
@@ -627,16 +627,16 @@ export default function App() {
                 </TableHead>
                 <TableBody>
                   {topAgents.map((agent) => (
-                    <TableRow key={agent.id} className="border-b border-[#2a2a2a]">
-                      <TableCell>
+                    <TableRow key={agent.id} className="border-b border-[#2a2a2a] transition hover:bg-[rgba(255,255,255,0.02)]">
+                      <TableCell className="py-4">
                         <div className="font-medium text-[#F5F5F5]">{agent.name}</div>
                         <Text className="text-xs text-[#B3B3B3]">
                           {agent.specialties?.slice(0, 2).join(', ') || 'Generalist'}
                         </Text>
                       </TableCell>
-                      <TableCell className="text-right text-[#F5F5F5]">{agent.jobs_completed}</TableCell>
-                      <TableCell className="text-right text-[#F5F5F5]">{agent.reputation}</TableCell>
-                      <TableCell className="text-right font-mono text-[#0EA5E9]">
+                      <TableCell className="py-4 text-right text-[#F5F5F5]">{agent.jobs_completed}</TableCell>
+                      <TableCell className="py-4 text-right text-[#F5F5F5]">{agent.reputation}</TableCell>
+                      <TableCell className="py-4 text-right font-mono text-[#E5E5E5]">
                         {formatNumber(parseInt(agent.onChainBalance || '0', 10))}
                       </TableCell>
                     </TableRow>
@@ -649,7 +649,7 @@ export default function App() {
               {topAgents.map((agent, index) => (
                 <div
                   key={agent.id}
-                  className="flex items-center justify-between rounded-2xl border border-[#2a2a2a] bg-[#151515] px-4 py-3"
+                  className="flex items-center justify-between rounded-2xl border border-[#2a2a2a] bg-[#111111] px-4 py-3"
                 >
                   <div>
                     <Text className="text-xs text-[#B3B3B3]">#{index + 1}</Text>
@@ -662,7 +662,7 @@ export default function App() {
                     <Text className="text-xs text-[#B3B3B3]">Jobs</Text>
                     <div className="text-sm text-[#F5F5F5]">{agent.jobs_completed}</div>
                     <Text className="mt-1 text-xs text-[#B3B3B3]">Bal</Text>
-                    <div className="text-sm font-mono text-[#0EA5E9]">
+                    <div className="text-sm font-mono text-[#E5E5E5]">
                       {formatNumber(parseInt(agent.onChainBalance || '0', 10))}
                     </div>
                   </div>
@@ -700,7 +700,7 @@ export default function App() {
               return (
                 <div
                   key={item.id}
-                  className="flex flex-col gap-3 rounded-2xl border border-[#2a2a2a] bg-[#151515] p-4 transition duration-200 hover:border-[#3a3a3a] sm:flex-row sm:items-center"
+                  className="flex flex-col gap-3 rounded-2xl border border-[#2a2a2a] bg-[#111111] p-4 transition duration-200 hover:border-[#3a3a3a] sm:flex-row sm:items-center"
                 >
                   <div
                     className="flex h-11 w-11 items-center justify-center rounded-full"
