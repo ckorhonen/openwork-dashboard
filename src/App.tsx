@@ -23,6 +23,7 @@ import {
   CheckCircle2,
   Coins,
   FileText,
+  Search,
   Trophy,
   TrendingUp,
   UserPlus,
@@ -222,6 +223,8 @@ function DashboardSkeleton() {
   )
 }
 
+const CLOSED_PAGE_SIZE = 25
+
 export default function App() {
   const [stats, setStats] = useState<DashboardStats | null>(null)
   const [agents, setAgents] = useState<Agent[]>([])
@@ -231,6 +234,9 @@ export default function App() {
   const [error, setError] = useState<string | null>(null)
   const [leaderboardSort, setLeaderboardSort] = useState<'balance' | 'jobs' | 'reputation'>('jobs')
   const [showAllActivity, setShowAllActivity] = useState(false)
+  const [closedSearch, setClosedSearch] = useState('')
+  const [closedTypeFilter, setClosedTypeFilter] = useState('all')
+  const [closedPage, setClosedPage] = useState(1)
 
   useEffect(() => {
     const fetchData = async () => {
@@ -238,7 +244,7 @@ export default function App() {
         const [dashRes, agentsRes, jobsRes] = await Promise.all([
           fetch('https://www.openwork.bot/api/dashboard'),
           fetch('https://www.openwork.bot/api/agents'),
-          fetch('https://www.openwork.bot/api/jobs'),
+          fetch('https://www.openwork.bot/api/jobs?limit=500'),
         ])
 
         if (!dashRes.ok || !agentsRes.ok || !jobsRes.ok) {
@@ -373,6 +379,25 @@ export default function App() {
       .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
       .slice(0, 12)
   }, [activity])
+
+  const closedJobs = useMemo(() => jobs.filter((j) => j.status === 'verified'), [jobs])
+
+  const closedTypes = useMemo(() => {
+    const types = Array.from(new Set(closedJobs.map((j) => j.type || 'general'))).sort()
+    return ['all', ...types]
+  }, [closedJobs])
+
+  const filteredClosedJobs = useMemo(() => {
+    const q = closedSearch.toLowerCase()
+    return closedJobs.filter((j) => {
+      const matchesSearch = !q || (j.title || '').toLowerCase().includes(q) || (j.type || '').toLowerCase().includes(q)
+      const matchesType = closedTypeFilter === 'all' || (j.type || 'general') === closedTypeFilter
+      return matchesSearch && matchesType
+    })
+  }, [closedJobs, closedSearch, closedTypeFilter])
+
+  const closedTotalPages = Math.ceil(filteredClosedJobs.length / CLOSED_PAGE_SIZE)
+  const pagedClosedJobs = filteredClosedJobs.slice((closedPage - 1) * CLOSED_PAGE_SIZE, closedPage * CLOSED_PAGE_SIZE)
 
   const totalAgents = stats?.totalAgents ?? 0
   const totalJobs = stats?.totalJobs ?? 0
@@ -732,6 +757,113 @@ export default function App() {
               {showAllActivity ? 'Show less' : `View all ${activityItems.length} events`}
             </button>
           )}
+          </Card>
+        </section>
+
+        <section id="closed-tasks">
+          <h2 className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-[#666666]">Closed Tasks</h2>
+          <Card className={`${cardClassName} reveal`}>
+            <Flex alignItems="center" justifyContent="between" className="flex-wrap gap-3 mb-5">
+              <div>
+                <Title className="text-base text-[#F5F5F5]">Verified Completions</Title>
+                <Text className="text-sm text-[#B3B3B3]">{closedJobs.length} tasks closed</Text>
+              </div>
+              <div className="flex flex-wrap gap-2 items-center">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#666666]" />
+                  <input
+                    type="text"
+                    placeholder="Search tasks…"
+                    value={closedSearch}
+                    onChange={(e) => { setClosedSearch(e.target.value); setClosedPage(1) }}
+                    className="pl-8 pr-3 py-1.5 rounded-full border border-[#333333] bg-[#111111] text-sm text-[#F5F5F5] placeholder:text-[#555555] outline-none focus:border-[#5E5CE6] w-48"
+                  />
+                </div>
+                <select
+                  value={closedTypeFilter}
+                  onChange={(e) => { setClosedTypeFilter(e.target.value); setClosedPage(1) }}
+                  className="rounded-full border border-[#333333] bg-[#111111] px-3 py-1.5 text-sm text-[#B3B3B3] outline-none focus:border-[#5E5CE6]"
+                >
+                  {closedTypes.map((t) => (
+                    <option key={t} value={t}>{t === 'all' ? 'All types' : t}</option>
+                  ))}
+                </select>
+              </div>
+            </Flex>
+
+            {pagedClosedJobs.length === 0 ? (
+              <Text className="text-[#B3B3B3] text-sm py-4 text-center">No tasks match your filter.</Text>
+            ) : (
+              <>
+                <div className="hidden md:block overflow-x-auto">
+                  <Table>
+                    <TableHead>
+                      <TableRow>
+                        <TableHeaderCell className="text-[#B3B3B3]">Title</TableHeaderCell>
+                        <TableHeaderCell className="text-[#B3B3B3]">Type</TableHeaderCell>
+                        <TableHeaderCell className="text-right text-[#B3B3B3]">Reward</TableHeaderCell>
+                        <TableHeaderCell className="text-right text-[#B3B3B3]">Completed</TableHeaderCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {pagedClosedJobs.map((job) => (
+                        <TableRow key={job.id} className="border-b border-[#2a2a2a] transition hover:bg-[rgba(255,255,255,0.02)]">
+                          <TableCell className="py-3">
+                            <div className="text-sm font-medium text-[#F5F5F5] max-w-sm truncate">{job.title}</div>
+                          </TableCell>
+                          <TableCell className="py-3">
+                            <Badge className="bg-[#1f2a1f] text-[#34D399] text-xs">{job.type || 'general'}</Badge>
+                          </TableCell>
+                          <TableCell className="py-3 text-right text-sm text-[#F5F5F5] font-mono">
+                            {job.reward > 0 ? formatTokens(job.reward) : '—'}
+                          </TableCell>
+                          <TableCell className="py-3 text-right text-xs text-[#B3B3B3]">
+                            {new Date(job.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+
+                <div className="space-y-2 md:hidden">
+                  {pagedClosedJobs.map((job) => (
+                    <div key={job.id} className="flex flex-col gap-1 rounded-xl border border-[#2a2a2a] bg-[#111111] px-4 py-3">
+                      <div className="flex items-start justify-between gap-2">
+                        <span className="text-sm font-medium text-[#F5F5F5] flex-1">{job.title}</span>
+                        <Badge className="bg-[#1f2a1f] text-[#34D399] text-xs shrink-0">{job.type || 'general'}</Badge>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <Text className="text-xs text-[#B3B3B3]">{new Date(job.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</Text>
+                        <Text className="text-xs font-mono text-[#F5F5F5]">{job.reward > 0 ? formatTokens(job.reward) : '—'}</Text>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-4 flex items-center justify-between">
+                  <Text className="text-xs text-[#B3B3B3]">
+                    {filteredClosedJobs.length} result{filteredClosedJobs.length !== 1 ? 's' : ''} · page {closedPage} of {closedTotalPages}
+                  </Text>
+                  <div className="flex gap-2">
+                    <button
+                      disabled={closedPage <= 1}
+                      onClick={() => setClosedPage((p) => p - 1)}
+                      className="rounded-full border border-[#333333] bg-[#1a1a1a] px-4 py-1.5 text-xs text-[#B3B3B3] disabled:opacity-40 hover:bg-[#222222] transition"
+                    >
+                      ← Prev
+                    </button>
+                    <button
+                      disabled={closedPage >= closedTotalPages}
+                      onClick={() => setClosedPage((p) => p + 1)}
+                      className="rounded-full border border-[#333333] bg-[#1a1a1a] px-4 py-1.5 text-xs text-[#B3B3B3] disabled:opacity-40 hover:bg-[#222222] transition"
+                    >
+                      Next →
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
           </Card>
         </section>
 
